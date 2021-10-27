@@ -8,8 +8,19 @@ SCREEN_HEIGTH = int(SCREEN_WIDTH * 0.8)
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGTH))
 pygame.display.set_caption('PicaPau do Iguacu')
 
+clock = pygame.time.Clock()
+FPS = 60
+
+
 moving_left = False
 moving_rigth = False
+
+BG = (144, 201, 120)
+
+
+def draw_bg():
+  screen.fill(BG)
+
 
 class Wood(pygame.sprite.Sprite):
   def __init__(self, x, y, scale, speed):
@@ -41,6 +52,10 @@ player = Wood(200, 200, 0.3, 5)
 
 run = True
 while run:
+
+  clock.tick(FPS)
+  
+  draw_bg()
 
   player.draw()
   player.move(moving_left, moving_rigth)
