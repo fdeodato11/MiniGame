@@ -15,7 +15,9 @@ class Wood(pygame.sprite.Sprite):
     self.imagem = pygame.transform.scale(img, (int(img.get_width() * escala), int(img.get_height()* escala)))
     self.rect = self.imagem.get_rect()
     self.rect.center = (x, y)
-
+  
+  def draw(self):
+    screen.blit(self.imagem, self.rect)
 
 player = Wood(200, 200, 0.3)
 
@@ -23,7 +25,7 @@ player = Wood(200, 200, 0.3)
 run = True
 while run:
 
-  screen.blit(player.imagem, player.rect)
+  player.draw()
 
   for event in pygame.event.get():
     if event.type == QUIT:
