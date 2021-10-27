@@ -53,7 +53,7 @@ class Character(pygame.sprite.Sprite):
   def draw(self):
     screen.blit(pygame.transform.flip(self.image ,self.flip, False), self.rect)
 
-player = Character('wood' ,200, 200, 0.4, 5)
+player = Character('wood' ,200, 200, 0.1, 5)
 enemy = Character('guarda3' ,400, 200, 0.1, 5)
 
 
