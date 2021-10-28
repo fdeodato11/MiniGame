@@ -11,6 +11,8 @@ pygame.display.set_caption('PicaPau do Iguacu')
 clock = pygame.time.Clock()
 FPS = 60
 
+#ESCALAS
+wood_idle = 0.4
 
 moving_left = False
 moving_rigth = False
@@ -28,8 +30,25 @@ class Character(pygame.sprite.Sprite):
     self.speed = speed
     self.direction = 1
     self.flip = False
-    img = pygame.image.load(f'images/{char_type}/idle/0.png')
-    self.image = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height()* scale)))
+    self.animation_list = []
+    self.frame_index = 0
+    self.action = 0
+    self.update_time = pygame.time.get_ticks()
+    if char_type == "wood":
+      temp_list = []
+      for i in range(2):
+        img = pygame.image.load(f'images/{char_type}/idle/{i}.png')
+        img = pygame.transform.scale(img, (int(img.get_width() * wood_idle), int(img.get_height()* wood_idle)))
+        temp_list.append(img)
+      self.animation_list.append(temp_list)
+      temp_list = []
+      for i in range(12):
+        img = pygame.image.load(f'images/{char_type}/walk/{i}.png')
+        img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height()* scale)))
+        temp_list.append(img)
+    self.animation_list.append(temp_list)
+    
+    self.image = self.animation_list[self.action][self.frame_index]
     self.rect = self.image.get_rect()
     self.rect.center = (x, y)
 
@@ -49,12 +68,29 @@ class Character(pygame.sprite.Sprite):
     self.rect.x += dx
     self.rect.y += dy
 
-  
+
+  def update_animation(self):
+    ANIMATION_COOLDOWN = 100
+
+    self.image = self.animation_list[self.action][self.frame_index]
+
+    if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
+      self.update_time = pygame.time.get_ticks()
+      self.frame_index += 1
+    if self.frame_index >= len(self.animation_list[self.action]):
+      self.frame_index = 0
+
+  def update_action(self, new_action):
+    if new_action != self.action:
+      self.action = new_action
+      self.frame_index = 0
+      self.update_time = pygame.time.get_ticks()
+
   def draw(self):
     screen.blit(pygame.transform.flip(self.image ,self.flip, False), self.rect)
 
-player = Character('wood' ,200, 200, 0.1, 5)
-enemy = Character('guarda3' ,400, 200, 0.1, 5)
+player = Character('wood' ,200, 200, 0.6, 5)
+# enemy = Character('guarda3', 8 ,400, 187, 0.1, 5)
 
 
 run = True
@@ -64,8 +100,16 @@ while run:
   
   draw_bg()
 
+  player.update_animation()
+  # enemy.update_animation()
   player.draw()
-  enemy.draw()
+  # enemy.draw()
+
+  if moving_rigth or moving_left:
+    player.update_action(1)
+  else:
+    player.update_action(0)
+    
   player.move(moving_left, moving_rigth)
 
   for event in pygame.event.get():
