@@ -17,9 +17,18 @@ GRAVITY = 0.75
 #ESCALAS
 WOOD_IDLE = 0.4
 WOOD_JUMP = 0.45
+BULLET_SCALE = 0.3
 
+#variaveis do jogador
 moving_left = False
 moving_rigth = False
+shoot = False
+
+#carrega imagens
+#bala
+bullet_img = pygame.image.load('images/bullet/0.png').convert_alpha()
+
+
 
 BG = (144, 201, 120)
 RED = (255, 0, 0)
@@ -66,13 +75,13 @@ class Character(pygame.sprite.Sprite):
       if char_type == "guarda3":
         temp_list = []
         for i in range(8):
-          img = pygame.image.load(f'images/{char_type}/idle/{i}.png')
+          img = pygame.image.load(f'images/{char_type}/idle/{i}.png').convert_alpha()
           img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height()* scale)))
           temp_list.append(img)
         self.animation_list.append(temp_list)
         temp_list = []
         for i in range(8):
-          img = pygame.image.load(f'images/{char_type}/walk/{i}.png')
+          img = pygame.image.load(f'images/{char_type}/walk/{i}.png').convert_alpha()
           img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height()* scale)))
           temp_list.append(img)
         self.animation_list.append(temp_list)
@@ -134,6 +143,21 @@ class Character(pygame.sprite.Sprite):
   def draw(self):
     screen.blit(pygame.transform.flip(self.image ,self.flip, False), self.rect)
 
+class Bullet(pygame.sprite.Sprite):
+  def __init__(self, x, y, direction):
+    pygame.sprite.Sprite.__init__(self)
+    self.speed = 10
+    self.image = pygame.transform.scale(bullet_img, (int(bullet_img.get_width() * BULLET_SCALE), int(bullet_img.get_height()* BULLET_SCALE)))
+    self.rect = self.image.get_rect()
+    self.rect.center = (x, y)
+    self.direction = direction
+
+
+#grupo de sprites
+bullet_group = pygame.sprite.Group()
+
+
+
 player = Character('wood' ,200, 400, 0.6, 5)
 enemy = Character('guarda3', 400, 387, 0.1, 5)
 
@@ -149,8 +173,15 @@ while run:
   enemy.update_animation()
   player.draw()
   enemy.draw()
+
+#carrega grupo de sprites
+  bullet_group.update()
+  bullet_group.draw(screen)
   
   if player.alive:
+    if shoot:
+      bullet = Bullet(player.rect.centerx, player.rect.centery, player.direction)
+      bullet_group.add(bullet)
     if player.in_air:
       player.update_action(2)
     elif moving_rigth or moving_left:
@@ -167,6 +198,8 @@ while run:
         moving_left = True
       if event.key == pygame.K_d:
         moving_rigth = True
+      if event.key == pygame.K_SPACE:
+        shoot = True
       if event.key == pygame.K_w and player.alive:
         player.jump = True
       if event.key == pygame.K_ESCAPE:
@@ -177,6 +210,8 @@ while run:
         moving_left = False
       if event.key == pygame.K_d:
         moving_rigth = False
+      if event.key == pygame.K_SPACE:
+        shoot = False
 
 
   
