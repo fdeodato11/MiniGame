@@ -17,6 +17,7 @@ GRAVITY = 0.75
 #ESCALAS
 WOOD_IDLE = 0.4
 WOOD_JUMP = 0.45
+WOOD_ATTACK = 0.47
 BULLET_SCALE = 0.3
 
 #variaveis do jogador
@@ -54,7 +55,7 @@ class Character(pygame.sprite.Sprite):
     self.action = 0
     self.update_time = pygame.time.get_ticks()
 
-    animation_types = ['idle', 'walk', 'jump'] 
+    animation_types = ['idle', 'walk', 'jump', 'attack'] 
     for animation in animation_types:
       
       if char_type == "wood":
@@ -67,6 +68,8 @@ class Character(pygame.sprite.Sprite):
             img = pygame.transform.scale(img, (int(img.get_width() * WOOD_IDLE), int(img.get_height()* WOOD_IDLE)))
           elif animation == 'jump':
             img = pygame.transform.scale(img, (int(img.get_width() * WOOD_JUMP), int(img.get_height()* WOOD_JUMP)))
+          elif animation == 'attack':
+            img = pygame.transform.scale(img, (int(img.get_width() * WOOD_ATTACK), int(img.get_height()* WOOD_ATTACK)))
           else:
             img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height()* scale)))
           temp_list.append(img)
@@ -122,6 +125,11 @@ class Character(pygame.sprite.Sprite):
     self.rect.x += dx
     self.rect.y += dy
 
+  def shoot(self):
+    self.update_action(3)
+    bullet = Bullet(self.rect.centerx + (self.rect.size[0] + self.direction), self.rect.centery, self.direction)
+    bullet_group.add(bullet)
+
 
   def update_animation(self):
     ANIMATION_COOLDOWN = 100
@@ -152,7 +160,12 @@ class Bullet(pygame.sprite.Sprite):
     self.rect.center = (x, y)
     self.direction = direction
 
+  def update(self):
+    self.rect.x += (self.direction * self.speed)
+    if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
+      self.kill()
 
+ 
 #grupo de sprites
 bullet_group = pygame.sprite.Group()
 
@@ -180,9 +193,8 @@ while run:
   
   if player.alive:
     if shoot:
-      bullet = Bullet(player.rect.centerx, player.rect.centery, player.direction)
-      bullet_group.add(bullet)
-    if player.in_air:
+      player.shoot()
+    elif player.in_air:
       player.update_action(2)
     elif moving_rigth or moving_left:
       player.update_action(1)
