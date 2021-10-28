@@ -48,6 +48,8 @@ class Character(pygame.sprite.Sprite):
     self.ammo = ammo
     self.start_ammo = ammo
     self.shoot_cooldown = 0
+    self.health = 10
+    self.max_health = self.health
     self.direction = 1
     self.vel_y = 0
     self.jump = False
@@ -58,7 +60,7 @@ class Character(pygame.sprite.Sprite):
     self.action = 0
     self.update_time = pygame.time.get_ticks()
 
-    animation_types = ['idle', 'walk', 'jump', 'attack'] 
+    animation_types = ['idle', 'walk', 'jump', 'attack', 'hurt'] 
     for animation in animation_types:
       
       if char_type == "wood":
@@ -66,7 +68,7 @@ class Character(pygame.sprite.Sprite):
         num_of_frames = len(os.listdir(f'images/{char_type}/{animation}'))
 
         for i in range(num_of_frames):
-          img = pygame.image.load(f'images/{char_type}/{animation}/{i}.png')
+          img = pygame.image.load(f'images/{char_type}/{animation}/{i}.png').convert_alpha()
           if animation == 'idle':
             img = pygame.transform.scale(img, (int(img.get_width() * WOOD_IDLE), int(img.get_height()* WOOD_IDLE)))
           elif animation == 'jump':
@@ -80,14 +82,10 @@ class Character(pygame.sprite.Sprite):
 
       if char_type == "guarda3":
         temp_list = []
-        for i in range(8):
-          img = pygame.image.load(f'images/{char_type}/idle/{i}.png').convert_alpha()
-          img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height()* scale)))
-          temp_list.append(img)
-        self.animation_list.append(temp_list)
-        temp_list = []
-        for i in range(8):
-          img = pygame.image.load(f'images/{char_type}/walk/{i}.png').convert_alpha()
+        num_of_frames = len(os.listdir(f'images/{char_type}/{animation}'))
+
+        for i in range(num_of_frames):
+          img = pygame.image.load(f'images/{char_type}/{animation}/{i}.png').convert_alpha()
           img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height()* scale)))
           temp_list.append(img)
         self.animation_list.append(temp_list)
@@ -98,6 +96,7 @@ class Character(pygame.sprite.Sprite):
 
   def update(self):
     self.update_animation()
+    self.check_alive()
     if self.shoot_cooldown > 0:
       self.shoot_cooldown -= 1  
 
@@ -151,13 +150,24 @@ class Character(pygame.sprite.Sprite):
       self.update_time = pygame.time.get_ticks()
       self.frame_index += 1
     if self.frame_index >= len(self.animation_list[self.action]):
-      self.frame_index = 0
+      if self.action == 4:
+        self.frame_index = len(self.animation_list[self.action]) - 1
+      else:
+        self.frame_index = 0
+    
 
   def update_action(self, new_action):
     if new_action != self.action:
       self.action = new_action
       self.frame_index = 0
       self.update_time = pygame.time.get_ticks()
+
+  def check_alive(self):
+    if self.health <= 0:
+      self.health = 0
+      self.speed = 0
+      self.alive = False
+      self.update_action(4)
 
   def draw(self):
     screen.blit(pygame.transform.flip(self.image ,self.flip, False), self.rect)
@@ -176,14 +186,24 @@ class Bullet(pygame.sprite.Sprite):
     if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
       self.kill()
 
+    if pygame.sprite.spritecollide(player, bullet_group, False):
+      if player.alive:
+        player.health -= 1
+        self.kill()
+    if pygame.sprite.spritecollide(enemy, bullet_group, False):
+      if enemy.alive:
+        enemy.health -= 3
+        self.kill()
+
+
  
 #grupo de sprites
 bullet_group = pygame.sprite.Group()
 
 
 
-player = Character('wood' ,200, 400, 0.6, 5, 3)
-enemy = Character('guarda3', 400, 387, 0.1, 5, 3)
+player = Character('wood' ,200, 400, 0.6, 5, 5)
+enemy = Character('guarda3', 400, 387, 0.1, 5, 5)
 
 
 run = True
@@ -194,9 +214,9 @@ while run:
   draw_bg()
 
   player.update()
-  enemy.update_animation()
-
   player.draw()
+
+  enemy.update()
   enemy.draw()
 
 #carrega grupo de sprites
