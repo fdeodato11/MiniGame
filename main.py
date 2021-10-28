@@ -190,20 +190,26 @@ class Bullet(pygame.sprite.Sprite):
       if player.alive:
         player.health -= 1
         self.kill()
-    if pygame.sprite.spritecollide(enemy, bullet_group, False):
-      if enemy.alive:
-        enemy.health -= 3
-        self.kill()
+    for enemy in enemy_group:
+      if pygame.sprite.spritecollide(enemy, bullet_group, False):
+        if enemy.alive:
+          enemy.health -= 3
+          self.kill()
+        
 
 
  
 #grupo de sprites
+enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
 
 
 
-player = Character('wood' ,200, 400, 0.6, 5, 5)
+player = Character('wood' ,200, 400, 0.6, 5, 10)
 enemy = Character('guarda3', 400, 387, 0.1, 5, 5)
+enemy2 = Character('guarda3', 500, 387, 0.1, 5, 5)
+enemy_group.add(enemy)
+enemy_group.add(enemy2)
 
 
 run = True
@@ -216,8 +222,10 @@ while run:
   player.update()
   player.draw()
 
-  enemy.update()
-  enemy.draw()
+  for enemy in enemy_group:
+    enemy.update()
+    enemy.draw()
+      
 
 #carrega grupo de sprites
   bullet_group.update()
