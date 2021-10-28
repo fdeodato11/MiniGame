@@ -46,7 +46,20 @@ class Character(pygame.sprite.Sprite):
         img = pygame.image.load(f'images/{char_type}/walk/{i}.png')
         img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height()* scale)))
         temp_list.append(img)
-    self.animation_list.append(temp_list)
+      self.animation_list.append(temp_list)
+    if char_type == "guarda3":
+      temp_list = []
+      for i in range(8):
+        img = pygame.image.load(f'images/{char_type}/idle/{i}.png')
+        img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height()* scale)))
+        temp_list.append(img)
+      self.animation_list.append(temp_list)
+      temp_list = []
+      for i in range(8):
+        img = pygame.image.load(f'images/{char_type}/walk/{i}.png')
+        img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height()* scale)))
+        temp_list.append(img)
+      self.animation_list.append(temp_list)
     
     self.image = self.animation_list[self.action][self.frame_index]
     self.rect = self.image.get_rect()
@@ -90,7 +103,7 @@ class Character(pygame.sprite.Sprite):
     screen.blit(pygame.transform.flip(self.image ,self.flip, False), self.rect)
 
 player = Character('wood' ,200, 200, 0.6, 5)
-# enemy = Character('guarda3', 8 ,400, 187, 0.1, 5)
+enemy = Character('guarda3', 400, 187, 0.1, 5)
 
 
 run = True
@@ -101,9 +114,9 @@ while run:
   draw_bg()
 
   player.update_animation()
-  # enemy.update_animation()
+  enemy.update_animation()
   player.draw()
-  # enemy.draw()
+  enemy.draw()
 
   if moving_rigth or moving_left:
     player.update_action(1)
