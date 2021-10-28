@@ -3,6 +3,8 @@ import os
 from pygame.locals import *
 from sys import exit
 
+pygame.init()
+
 SCREEN_WIDTH = 800
 SCREEN_HEIGTH = int(SCREEN_WIDTH * 0.8)
 
@@ -19,6 +21,8 @@ WOOD_IDLE = 0.4
 WOOD_JUMP = 0.45
 WOOD_ATTACK = 0.47
 BULLET_SCALE = 0.3
+TILE_SIZE = 40
+PEANUT_SIZE = 0.036
 
 #variaveis do jogador
 moving_left = False
@@ -29,10 +33,29 @@ shoot = False
 #bala
 bullet_img = pygame.image.load('images/bullet/0.png').convert_alpha()
 
+# HUD
+bullet_hud = pygame.transform.scale(bullet_img, (int(bullet_img.get_width() * BULLET_SCALE), int(bullet_img.get_height()* BULLET_SCALE)))
+
+#coletaveis
+heart = pygame.image.load('images/heart/0.png').convert_alpha()
+peanut = pygame.image.load('images/peanut/0.png').convert_alpha()
+item_boxes = {
+  'Health' : heart,
+   'Ammo' : peanut
+}
 
 
 BG = (144, 201, 120)
 RED = (255, 0, 0)
+WHITE = (255, 255, 255)
+
+font = pygame.font.SysFont('Futura', 30)
+
+
+
+def draw_text(text, font, text_col, x, y):
+      img = font.render(text, True, text_col)
+      screen.blit(img, (x, y)) 
 
 
 def draw_bg():
@@ -133,10 +156,10 @@ class Character(pygame.sprite.Sprite):
     self.rect.y += dy
 
   def shoot(self):
+    self.update_action(3)
     if self.shoot_cooldown == 0 and self.ammo > 0:
       self.shoot_cooldown = 20
-      self.update_action(3)
-      bullet = Bullet(self.rect.centerx + (self.rect.size[0] + self.direction), self.rect.centery, self.direction)
+      bullet = Bullet(self.rect.centerx + (self.rect.size[0] * self.direction), self.rect.centery, self.direction)
       bullet_group.add(bullet)
       self.ammo -= 1
 
@@ -172,6 +195,33 @@ class Character(pygame.sprite.Sprite):
   def draw(self):
     screen.blit(pygame.transform.flip(self.image ,self.flip, False), self.rect)
 
+class ItemBox(pygame.sprite.Sprite):
+  def __init__(self, item_type, x, y):
+    pygame.sprite.Sprite.__init__(self)
+    self.item_type = item_type
+    if item_type == 'Ammo':
+      img = item_boxes[self.item_type] 
+      img = pygame.transform.scale(img, (int(img.get_width() * PEANUT_SIZE), int(img.get_height()* PEANUT_SIZE)))
+      self.image = img
+    else:
+      self.image = item_boxes[self.item_type]
+    self.rect = self.image.get_rect()
+    self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
+  
+
+  def update(self):
+    if pygame.sprite.collide_rect(self, player):
+      if self.item_type == "Health":
+        player.health += 10
+        if player.health > player.max_health:
+          player.health = player.max_health
+      elif self.item_type == "Ammo":
+        player.ammo += 5
+        if player.start_ammo > player.ammo:
+              player.ammo = player.start_ammo
+      self.kill()
+  
+
 class Bullet(pygame.sprite.Sprite):
   def __init__(self, x, y, direction):
     pygame.sprite.Sprite.__init__(self)
@@ -202,6 +252,7 @@ class Bullet(pygame.sprite.Sprite):
 #grupo de sprites
 enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
+item_box_group = pygame.sprite.Group()
 
 
 
@@ -211,6 +262,13 @@ enemy2 = Character('guarda3', 500, 387, 0.1, 5, 5)
 enemy_group.add(enemy)
 enemy_group.add(enemy2)
 
+#temp de teste de item box
+item_box = ItemBox('Health', 100, 417)
+item_box_group.add(item_box)
+item_box = ItemBox('Ammo', 550, 412)
+item_box_group.add(item_box)
+
+
 
 run = True
 while run:
@@ -218,6 +276,14 @@ while run:
   clock.tick(FPS)
   
   draw_bg()
+
+  draw_text(f'MUNICAO: ', font, WHITE, -30, 35)
+  for x in range (player.ammo):
+    screen.blit(bullet_hud, (90 + (x * 22), 35))
+  
+  draw_text(f'VIDA: ', font, RED, 10, 70)
+  for x in range (player.health):
+    screen.blit(item_boxes['Health'], (90 + (x * 22), 60))
 
   player.update()
   player.draw()
@@ -229,7 +295,9 @@ while run:
 
 #carrega grupo de sprites
   bullet_group.update()
+  item_box_group.update()
   bullet_group.draw(screen)
+  item_box_group.draw(screen)
   
   if player.alive:
     if shoot:
