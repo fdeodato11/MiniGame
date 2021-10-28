@@ -41,10 +41,13 @@ def draw_bg():
 
 
 class Character(pygame.sprite.Sprite):
-  def __init__(self, char_type, x, y, scale, speed):
+  def __init__(self, char_type, x, y, scale, speed, ammo):
     pygame.sprite.Sprite.__init__(self)
     self.alive = True
     self.speed = speed
+    self.ammo = ammo
+    self.start_ammo = ammo
+    self.shoot_cooldown = 0
     self.direction = 1
     self.vel_y = 0
     self.jump = False
@@ -93,6 +96,11 @@ class Character(pygame.sprite.Sprite):
     self.rect = self.image.get_rect()
     self.rect.center = (x, y)
 
+  def update(self):
+    self.update_animation()
+    if self.shoot_cooldown > 0:
+      self.shoot_cooldown -= 1  
+
   def move(self, moving_left, moving_rigth):
     dx = 0
     dy = 0
@@ -126,9 +134,12 @@ class Character(pygame.sprite.Sprite):
     self.rect.y += dy
 
   def shoot(self):
-    self.update_action(3)
-    bullet = Bullet(self.rect.centerx + (self.rect.size[0] + self.direction), self.rect.centery, self.direction)
-    bullet_group.add(bullet)
+    if self.shoot_cooldown == 0 and self.ammo > 0:
+      self.shoot_cooldown = 20
+      self.update_action(3)
+      bullet = Bullet(self.rect.centerx + (self.rect.size[0] + self.direction), self.rect.centery, self.direction)
+      bullet_group.add(bullet)
+      self.ammo -= 1
 
 
   def update_animation(self):
@@ -171,8 +182,8 @@ bullet_group = pygame.sprite.Group()
 
 
 
-player = Character('wood' ,200, 400, 0.6, 5)
-enemy = Character('guarda3', 400, 387, 0.1, 5)
+player = Character('wood' ,200, 400, 0.6, 5, 3)
+enemy = Character('guarda3', 400, 387, 0.1, 5, 3)
 
 
 run = True
@@ -182,8 +193,9 @@ while run:
   
   draw_bg()
 
-  player.update_animation()
+  player.update()
   enemy.update_animation()
+
   player.draw()
   enemy.draw()
 
