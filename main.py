@@ -1,5 +1,6 @@
 import pygame
 import os
+import random
 from pygame.locals import *
 from sys import exit
 
@@ -84,7 +85,10 @@ class Character(pygame.sprite.Sprite):
     self.frame_index = 0
     self.action = 0
     self.update_time = pygame.time.get_ticks()
-
+    # Variaveis da AI
+    self.move_counter = 0 
+    self.idling = False
+    self.idling_counter = 0
     animation_types = ['idle', 'walk', 'jump', 'attack', 'hurt'] 
     for animation in animation_types:
       
@@ -165,6 +169,27 @@ class Character(pygame.sprite.Sprite):
       bullet_group.add(bullet)
       self.ammo -= 1
 
+  def ai(self):
+    if self.alive and player.alive:
+      if random.randint(1, 110) == 1:
+        self.idling = True
+
+      if self.idling == False:
+        if self.direction == 1:
+          ai_moving_right = True
+        else:
+          ai_moving_right = False
+        ai_moving_lef = not ai_moving_right
+        self.move(ai_moving_lef, ai_moving_right)
+        self.update_action(1)
+        self.move_counter += 1
+
+        if self.move_counter > TILE_SIZE:
+          self.direction *= -1
+          self.move_counter *= -1
+
+
+
 
   def update_animation(self):
     ANIMATION_COOLDOWN = 100
@@ -220,7 +245,7 @@ class ItemBox(pygame.sprite.Sprite):
       elif self.item_type == "Ammo":
         player.ammo += 5
         if player.start_ammo > player.ammo:
-              player.ammo = player.start_ammo
+            player.ammo = player.start_ammo
       self.kill()
 
 class HealthBar():
@@ -271,14 +296,13 @@ bullet_group = pygame.sprite.Group()
 item_box_group = pygame.sprite.Group()
 
 
-
 player = Character('wood' ,200, 400, 0.6, 5, 10)
 health_bar = HealthBar(10, 10, player.health, player.health)
 
-enemy = Character('guarda3', 400, 387, 0.1, 5, 5)
-enemy2 = Character('guarda3', 500, 387, 0.1, 5, 5)
+enemy = Character('guarda3', 400, 387, 0.1, 2, 5)
+# enemy2 = Character('guarda3', 500, 387, 0.1, 5, 5)
 enemy_group.add(enemy)
-enemy_group.add(enemy2)
+# enemy_group.add(enemy2)
 
 #temp de teste de item box
 item_box = ItemBox('Health', 100, 417)
@@ -305,9 +329,10 @@ while run:
   player.draw()
 
   for enemy in enemy_group:
+    enemy.ai()
     enemy.update()
     enemy.draw()
-      
+    
 
 #carrega grupo de sprites
   bullet_group.update()
