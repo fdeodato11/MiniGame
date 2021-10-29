@@ -89,6 +89,10 @@ class Character(pygame.sprite.Sprite):
     self.move_counter = 0 
     self.idling = False
     self.idling_counter = 0
+    self.vision = pygame.Rect(0, 0, 150, 20)
+
+
+
     animation_types = ['idle', 'walk', 'jump', 'attack', 'hurt'] 
     for animation in animation_types:
       
@@ -171,23 +175,32 @@ class Character(pygame.sprite.Sprite):
 
   def ai(self):
     if self.alive and player.alive:
-      if random.randint(1, 110) == 1:
+      if self.idling == False and random.randint(1, 110) == 1:
+        self.update_action(0)
         self.idling = True
+        self.idling_counter = 50
+      if self.vision.colliderect(player.rect):
+        self.update_action(0)
+        self.shoot()
+      else: 
+        if self.idling == False:
+          if self.direction == 1:
+            ai_moving_right = True
+          else:
+            ai_moving_right = False
+          ai_moving_left = not ai_moving_right
+          self.move(ai_moving_left, ai_moving_right)
+          self.update_action(1)
+          self.move_counter += 1
+          self.vision.center = (self.rect.centerx + 75 * self.direction, self.rect.centery)
 
-      if self.idling == False:
-        if self.direction == 1:
-          ai_moving_right = True
+          if self.move_counter > TILE_SIZE:
+            self.direction *= -1
+            self.move_counter *= -1
         else:
-          ai_moving_right = False
-        ai_moving_lef = not ai_moving_right
-        self.move(ai_moving_lef, ai_moving_right)
-        self.update_action(1)
-        self.move_counter += 1
-
-        if self.move_counter > TILE_SIZE:
-          self.direction *= -1
-          self.move_counter *= -1
-
+          self.idling_counter -= 1
+          if self.idling_counter <= 0:
+            self.idling = False
 
 
 
@@ -299,10 +312,10 @@ item_box_group = pygame.sprite.Group()
 player = Character('wood' ,200, 400, 0.6, 5, 10)
 health_bar = HealthBar(10, 10, player.health, player.health)
 
-enemy = Character('guarda3', 400, 387, 0.1, 2, 5)
-# enemy2 = Character('guarda3', 500, 387, 0.1, 5, 5)
+enemy = Character('guarda3', 400, 387, 0.1, 2, 555)
+enemy2 = Character('guarda3', 500, 387, 0.1, 2, 555)
 enemy_group.add(enemy)
-# enemy_group.add(enemy2)
+enemy_group.add(enemy2)
 
 #temp de teste de item box
 item_box = ItemBox('Health', 100, 417)
