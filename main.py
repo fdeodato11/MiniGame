@@ -1,6 +1,7 @@
 import pygame
 import os
 import random
+import csv
 from pygame.locals import *
 from sys import exit
 
@@ -16,19 +17,30 @@ clock = pygame.time.Clock()
 FPS = 60
 
 GRAVITY = 0.75
+ROWS = 16
+COLS = 150
+TILE_SIZE = SCREEN_HEIGTH // ROWS
+TILE_TYPES = 21
+level = 1
 
 #ESCALAS
 WOOD_IDLE = 0.4
 WOOD_JUMP = 0.45
 WOOD_ATTACK = 0.47
 BULLET_SCALE = 0.3
-TILE_SIZE = 40
 PEANUT_SIZE = 0.036
 
 #variaveis do jogador
 moving_left = False
 moving_rigth = False
 shoot = False
+
+#carrega imagens
+img_list = []
+for x in range(TILE_TYPES):
+  img = pygame.image.load(f'images/tile/{x}.png')
+  img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
+  img_list.append(img)
 
 #carrega imagens
 #bala
@@ -235,6 +247,73 @@ class Character(pygame.sprite.Sprite):
   def draw(self):
     screen.blit(pygame.transform.flip(self.image ,self.flip, False), self.rect)
 
+class World():
+  def __init__(self):
+    self.obstacle_list = []
+
+  def process_data(self, data):
+    for y, row in enumerate(data):
+      for x, tile in enumerate(row):
+        if tile >= 0:
+          img = img_list[tile]
+          img_rect = img.get_rect()
+          img_rect.x = x * TILE_SIZE
+          img_rect.y = y * TILE_SIZE
+          tile_data = (img, img_rect)
+          if tile >= 0 and tile <= 8:
+            self.obstacle_list.append(tile_data)
+          elif tile >= 9 and tile <= 10:
+            water = Water(img, x * TILE_SIZE, y * TILE_SIZE)
+            water_group.add(water)
+          elif tile >= 11 and tile <= 14:
+            decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE)
+            decoration_group.add(decoration)
+          elif tile == 15:
+            player = Character('wood' , x * TILE_SIZE, y * TILE_SIZE, 0.6, 5, 10)
+            health_bar = health_bar = HealthBar(10, 10, player.health, player.health)
+          elif tile == 16:
+            enemy =   Character('guarda3', x * TILE_SIZE, y * TILE_SIZE, 0.1, 2, 555)
+            enemy_group.add(enemy)
+          elif tile == 17:
+            item_box = ItemBox('Ammo', x * TILE_SIZE, y * TILE_SIZE)
+            item_box_group.add(item_box)
+          elif tile == 18:
+            pass
+          elif tile == 19:
+            item_box = ItemBox('Health', x * TILE_SIZE, y * TILE_SIZE)
+            item_box_group.add(item_box)
+          elif tile == 20:
+            exit = Exit(img, x * TILE_SIZE, y * TILE_SIZE)
+            exit_group.add(exit)
+
+    return player, health_bar
+  
+  def draw(self):
+    for tile in self.obstacle_list:
+      screen.blit(tile[0], tile[1])
+
+
+class Decoration(pygame.sprite.Sprite):
+  def __init__(self, img, x, y):
+    pygame.sprite.Sprite.__init__(self)
+    self.image = img
+    self.rect = self.image.get_rect()
+    self.rect.midtop = ( x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
+
+class Water(pygame.sprite.Sprite):
+  def __init__(self, img, x, y):
+    pygame.sprite.Sprite.__init__(self)
+    self.image = img
+    self.rect = self.image.get_rect()
+    self.rect.midtop = ( x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
+
+class Exit(pygame.sprite.Sprite):
+  def __init__(self, img, x, y):
+    pygame.sprite.Sprite.__init__(self)
+    self.image = img
+    self.rect = self.image.get_rect()
+    self.rect.midtop = ( x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
+
 class ItemBox(pygame.sprite.Sprite):
   def __init__(self, item_type, x, y):
     pygame.sprite.Sprite.__init__(self)
@@ -302,27 +381,29 @@ class Bullet(pygame.sprite.Sprite):
         
 
 
- 
 #grupo de sprites
 enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
 item_box_group = pygame.sprite.Group()
+decoration_group = pygame.sprite.Group()
+exit_group = pygame.sprite.Group()
+water_group = pygame.sprite.Group()
 
 
-player = Character('wood' ,200, 400, 0.6, 5, 10)
-health_bar = HealthBar(10, 10, player.health, player.health)
+world_data = []
+for row in range(ROWS):
+  r = [-1] * COLS
+  world_data.append(r)
 
-enemy = Character('guarda3', 400, 387, 0.1, 2, 555)
-enemy2 = Character('guarda3', 500, 387, 0.1, 2, 555)
-enemy_group.add(enemy)
-enemy_group.add(enemy2)
+#carrega o lvl
+with open(f'level/level{level}_data.csv', newline='') as csvfile:
+  reader = csv.reader(csvfile, delimiter=',')
+  for x, row in enumerate(reader):
+    for y, tile in enumerate(row):
+          world_data[x][y] = int(tile)
 
-#temp de teste de item box
-item_box = ItemBox('Health', 100, 417)
-item_box_group.add(item_box)
-item_box = ItemBox('Ammo', 550, 412)
-item_box_group.add(item_box)
-
+world = World()
+player, health_bar = world.process_data(world_data)
 
 
 run = True
@@ -331,6 +412,8 @@ while run:
   clock.tick(FPS)
   
   draw_bg()
+
+  world.draw()
 
   health_bar.draw(player.health)
 
@@ -350,8 +433,15 @@ while run:
 #carrega grupo de sprites
   bullet_group.update()
   item_box_group.update()
+  decoration_group.update()
+  item_box_group.update()
+  exit_group.update()
+  water_group.update()
   bullet_group.draw(screen)
   item_box_group.draw(screen)
+  decoration_group.draw(screen)
+  water_group.draw(screen)
+  exit_group.draw(screen)
   
   if player.alive:
     if shoot:
