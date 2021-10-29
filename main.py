@@ -48,6 +48,8 @@ item_boxes = {
 BG = (144, 201, 120)
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+BLACK = (0, 0, 0)
 
 font = pygame.font.SysFont('Futura', 30)
 
@@ -220,7 +222,21 @@ class ItemBox(pygame.sprite.Sprite):
         if player.start_ammo > player.ammo:
               player.ammo = player.start_ammo
       self.kill()
-  
+
+class HealthBar():
+  def __init__(self, x, y, health, max_health):
+    self.x = x
+    self.y = y
+    self.health = health
+    self.max_health = max_health
+
+  def draw(self, health):
+    self.health = health
+
+    ratio = self.health / self.max_health
+    pygame.draw.rect(screen, BLACK, (self.x -2, self.y -2, 154, 24))
+    pygame.draw.rect(screen, RED, (self.x, self.y, 150, 20))
+    pygame.draw.rect(screen, GREEN, (self.x, self.y, 150 * ratio, 20))
 
 class Bullet(pygame.sprite.Sprite):
   def __init__(self, x, y, direction):
@@ -257,6 +273,8 @@ item_box_group = pygame.sprite.Group()
 
 
 player = Character('wood' ,200, 400, 0.6, 5, 10)
+health_bar = HealthBar(10, 10, player.health, player.health)
+
 enemy = Character('guarda3', 400, 387, 0.1, 5, 5)
 enemy2 = Character('guarda3', 500, 387, 0.1, 5, 5)
 enemy_group.add(enemy)
@@ -277,14 +295,12 @@ while run:
   
   draw_bg()
 
-  draw_text(f'MUNICAO: ', font, WHITE, -30, 35)
-  for x in range (player.ammo):
-    screen.blit(bullet_hud, (90 + (x * 22), 35))
-  
-  draw_text(f'VIDA: ', font, RED, 10, 70)
-  for x in range (player.health):
-    screen.blit(item_boxes['Health'], (90 + (x * 22), 60))
+  health_bar.draw(player.health)
 
+  draw_text('MUNICAO: ', font, WHITE, 10, 35)
+  for x in range (player.ammo):
+    screen.blit(bullet_hud, (120 + (x * 22), 35))
+  
   player.update()
   player.draw()
 
