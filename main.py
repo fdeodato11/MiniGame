@@ -16,7 +16,7 @@ pygame.display.set_caption('PicaPau do Iguacu')
 clock = pygame.time.Clock()
 FPS = 60
 
-GRAVITY = 0.75
+GRAVITY = 0.40
 ROWS = 16
 COLS = 150
 TILE_SIZE = SCREEN_HEIGTH // ROWS
@@ -75,7 +75,7 @@ def draw_text(text, font, text_col, x, y):
 
 def draw_bg():
   screen.fill(BG)
-  pygame.draw.line(screen, RED, (0, 455), (SCREEN_WIDTH, 455))
+  # pygame.draw.line(screen, RED, (0, 455), (SCREEN_WIDTH, 455))
 
 
 class Character(pygame.sprite.Sprite):
@@ -138,6 +138,8 @@ class Character(pygame.sprite.Sprite):
     self.image = self.animation_list[self.action][self.frame_index]
     self.rect = self.image.get_rect()
     self.rect.center = (x, y)
+    self.width = self.image.get_width()
+    self.height = self.image.get_height()
 
   def update(self):
     self.update_animation()
@@ -169,9 +171,17 @@ class Character(pygame.sprite.Sprite):
       self.vel_y
     dy += self.vel_y
 
-    if self.rect.bottom + dy > 455:
-      dy = 455 - self.rect.bottom
-      self.in_air = False
+    for tile in world.obstacle_list:
+      if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+        dx = 0
+        if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+          if self.vel_y < 0:
+            self.vel_y = 0
+            dy = tile[1].bottom - self.rect.top
+          elif self.vel_y >= 0:
+            self.vel_y = 0
+            self.in_air = False
+            dy = tile[1].top - self.rect.bottom
 
 
     self.rect.x += dx
@@ -368,6 +378,12 @@ class Bullet(pygame.sprite.Sprite):
     self.rect.x += (self.direction * self.speed)
     if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
       self.kill()
+
+    for tile in world.obstacle_list:
+      if tile[1].colliderect(self.rect):
+        self.kill()
+
+
 
     if pygame.sprite.spritecollide(player, bullet_group, False):
       if player.alive:
