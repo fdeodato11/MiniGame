@@ -16,7 +16,7 @@ pygame.display.set_caption('PicaPau do Iguacu')
 clock = pygame.time.Clock()
 FPS = 60
 
-GRAVITY = 0.40
+GRAVITY = 0.35
 SCROLL_THRESH = 150
 ROWS = 16
 COLS = 150
