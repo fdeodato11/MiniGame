@@ -17,10 +17,13 @@ clock = pygame.time.Clock()
 FPS = 60
 
 GRAVITY = 0.40
+SCROLL_THRESH = 150
 ROWS = 16
 COLS = 150
 TILE_SIZE = SCREEN_HEIGTH // ROWS
 TILE_TYPES = 21
+screen_scroll = 0
+bg_scroll = 0
 level = 1
 
 #ESCALAS
@@ -36,6 +39,8 @@ moving_rigth = False
 shoot = False
 
 #carrega imagens
+stage1_img = pygame.image.load('images/background/estage1.png').convert_alpha() 
+
 img_list = []
 for x in range(TILE_TYPES):
   img = pygame.image.load(f'images/tile/{x}.png')
@@ -75,13 +80,19 @@ def draw_text(text, font, text_col, x, y):
 
 def draw_bg():
   screen.fill(BG)
+  width = stage1_img.get_width()
+  for x in range(5):
+    screen.blit(stage1_img, ((x * width) - bg_scroll, 0))
   # pygame.draw.line(screen, RED, (0, 455), (SCREEN_WIDTH, 455))
+# SCREEN_WIDTH = 800
+# SCREEN_HEIGTH = int(SCREEN_WIDTH * 0.8)
 
 
 class Character(pygame.sprite.Sprite):
   def __init__(self, char_type, x, y, scale, speed, ammo):
     pygame.sprite.Sprite.__init__(self)
     self.alive = True
+    self.char_type = char_type
     self.speed = speed
     self.ammo = ammo
     self.start_ammo = ammo
@@ -148,6 +159,8 @@ class Character(pygame.sprite.Sprite):
       self.shoot_cooldown -= 1  
 
   def move(self, moving_left, moving_rigth):
+        
+    screen_scroll = 0
     dx = 0
     dy = 0
 
@@ -187,6 +200,14 @@ class Character(pygame.sprite.Sprite):
     self.rect.x += dx
     self.rect.y += dy
 
+    if self.char_type == 'wood':
+      if self.rect.right > SCREEN_WIDTH - SCROLL_THRESH or self.rect.left < SCROLL_THRESH:
+        self.rect.x -= dx
+        screen_scroll = -dx
+
+    return screen_scroll
+
+
   def shoot(self):
     self.update_action(3)
     if self.shoot_cooldown == 0 and self.ammo > 0:
@@ -223,6 +244,8 @@ class Character(pygame.sprite.Sprite):
           self.idling_counter -= 1
           if self.idling_counter <= 0:
             self.idling = False
+
+    self.rect.x += screen_scroll
 
 
 
@@ -300,6 +323,7 @@ class World():
   
   def draw(self):
     for tile in self.obstacle_list:
+      tile[1][0] += screen_scroll
       screen.blit(tile[0], tile[1])
 
 
@@ -310,6 +334,9 @@ class Decoration(pygame.sprite.Sprite):
     self.rect = self.image.get_rect()
     self.rect.midtop = ( x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
 
+  def update(self):
+    self.rect.x += screen_scroll
+
 class Water(pygame.sprite.Sprite):
   def __init__(self, img, x, y):
     pygame.sprite.Sprite.__init__(self)
@@ -317,12 +344,20 @@ class Water(pygame.sprite.Sprite):
     self.rect = self.image.get_rect()
     self.rect.midtop = ( x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
 
+    def update(self):
+      self.rect.x += screen_scroll
+
+
 class Exit(pygame.sprite.Sprite):
   def __init__(self, img, x, y):
     pygame.sprite.Sprite.__init__(self)
     self.image = img
     self.rect = self.image.get_rect()
     self.rect.midtop = ( x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
+
+    def update(self):
+      self.rect.x += screen_scroll
+
 
 class ItemBox(pygame.sprite.Sprite):
   def __init__(self, item_type, x, y):
@@ -339,6 +374,9 @@ class ItemBox(pygame.sprite.Sprite):
   
 
   def update(self):
+
+    self.rect.x += screen_scroll
+  
     if pygame.sprite.collide_rect(self, player):
       if self.item_type == "Health":
         player.health += 10
@@ -375,7 +413,7 @@ class Bullet(pygame.sprite.Sprite):
     self.direction = direction
 
   def update(self):
-    self.rect.x += (self.direction * self.speed)
+    self.rect.x += (self.direction * self.speed) + screen_scroll
     if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
       self.kill()
 
@@ -468,7 +506,10 @@ while run:
       player.update_action(1)
     else:
       player.update_action(0)
-    player.move(moving_left, moving_rigth)
+    screen_scroll = player.move(moving_left, moving_rigth)
+    bg_scroll -= screen_scroll
+
+
 
   for event in pygame.event.get():
     if event.type == QUIT:
