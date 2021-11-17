@@ -16,7 +16,7 @@ pygame.display.set_caption('PicaPau do Iguacu')
 clock = pygame.time.Clock()
 FPS = 60
 
-GRAVITY = 0.35
+GRAVITY = 0.30
 SCROLL_THRESH = 150
 ROWS = 16
 COLS = 150
@@ -382,9 +382,7 @@ class ItemBox(pygame.sprite.Sprite):
     self.rect = self.image.get_rect()
     self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
   
-
   def update(self):
-
     self.rect.x += screen_scroll
   
     if pygame.sprite.collide_rect(self, player):
@@ -498,7 +496,6 @@ while run:
   bullet_group.update()
   item_box_group.update()
   decoration_group.update()
-  item_box_group.update()
   exit_group.update()
   water_group.update()
   bullet_group.draw(screen)
