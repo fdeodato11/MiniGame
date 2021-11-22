@@ -24,6 +24,7 @@ ROWS = 16
 COLS = 150
 TILE_SIZE = SCREEN_HEIGHT  // ROWS
 TILE_TYPES = 21
+MAX_LEVELS = 3
 screen_scroll = 0
 bg_scroll = 0
 level = 1
@@ -229,6 +230,11 @@ class Character(pygame.sprite.Sprite):
 
     if pygame.sprite.spritecollide(self, water_group, False):
       self.health = 0
+
+    level_complete = False
+    if pygame.sprite.spritecollide(self, exit_group, False):
+      level_complete = True
+
     
     if self.rect.bottom > SCREEN_HEIGHT :
       self.health = 0    
@@ -247,7 +253,7 @@ class Character(pygame.sprite.Sprite):
         self.rect.x -= dx
         screen_scroll = -dx
 
-    return screen_scroll
+    return screen_scroll, level_complete
 
 
   def shoot(self):
@@ -560,8 +566,23 @@ while run:
         player.update_action(1)
       else:
         player.update_action(0)
-      screen_scroll = player.move(moving_left, moving_rigth)
+      screen_scroll, level_complete = player.move(moving_left, moving_rigth)
       bg_scroll -= screen_scroll
+
+      if level_complete:
+        level += 1
+        bg_scroll = 0
+        world_data = reset_level()
+        if level <= MAX_LEVELS:
+          with open(f'level/level{level}_data.csv', newline='') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',')
+            for x, row in enumerate(reader):
+              for y, tile in enumerate(row):
+                    world_data[x][y] = int(tile)
+
+          world = World()
+          player, health_bar = world.process_data(world_data)
+
     else:
       screen_scroll = 0
       if restart_button.draw(screen):
