@@ -486,13 +486,13 @@ while run:
   if start_game == False:
     #menu principal
     screen.fill(BG)
-    play_button.draw(screen)
-    quit_button.draw(screen)
-    pass
+    if play_button.draw(screen):
+      start_game = True
+
+    if quit_button.draw(screen):
+          run = False
   else:
   
-
-
     draw_bg()
 
     world.draw()
