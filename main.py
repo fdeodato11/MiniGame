@@ -10,9 +10,9 @@ from sys import exit
 pygame.init()
 
 SCREEN_WIDTH = 800
-SCREEN_HEIGTH = int(SCREEN_WIDTH * 0.8)
+SCREEN_HEIGHT  = int(SCREEN_WIDTH * 0.8)
 
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGTH))
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT ))
 pygame.display.set_caption('PicaPau do Iguacu')
 
 clock = pygame.time.Clock()
@@ -22,7 +22,7 @@ GRAVITY = 0.30
 SCROLL_THRESH = 150
 ROWS = 16
 COLS = 150
-TILE_SIZE = SCREEN_HEIGTH // ROWS
+TILE_SIZE = SCREEN_HEIGHT  // ROWS
 TILE_TYPES = 21
 screen_scroll = 0
 bg_scroll = 0
@@ -52,6 +52,8 @@ for x in range(TILE_TYPES):
 #carrega imagens
 play_img = pygame.image.load('images/menu/play button.png').convert_alpha()
 exit_img = pygame.image.load('images/menu/quit button.png').convert_alpha()
+restart_img = pygame.image.load('images/menu/restart.png').convert_alpha()
+
 
 stage1_img = pygame.image.load('images/background/estage1.png').convert_alpha() 
 #bala
@@ -91,7 +93,23 @@ def draw_bg():
     screen.blit(stage1_img, ((x * width) - bg_scroll, 0))
   # pygame.draw.line(screen, RED, (0, 455), (SCREEN_WIDTH, 455))
 # SCREEN_WIDTH = 800
-# SCREEN_HEIGTH = int(SCREEN_WIDTH * 0.8)
+# SCREEN_HEIGHT  = int(SCREEN_WIDTH * 0.8)
+
+def reset_level():
+  enemy_group.empty()
+  bullet_group.empty()
+  item_box_group.empty()
+  decoration_group.empty()
+  exit_group.empty()
+  water_group.empty()
+
+  #lita de tile vazia
+  data = []
+  for row in range(ROWS):
+    r = [-1] * COLS
+    data.append(r)
+
+  return data
 
 
 class Character(pygame.sprite.Sprite):
@@ -207,6 +225,14 @@ class Character(pygame.sprite.Sprite):
           self.vel_y = 0
           self.in_air = False
           dy = tile[1].top - self.rect.bottom
+
+
+    if pygame.sprite.spritecollide(self, water_group, False):
+      self.health = 0
+    
+    if self.rect.bottom > SCREEN_HEIGHT :
+      self.health = 0    
+      
 
     if self.char_type == 'wood':
       if self.rect.left + dx < 0 or self.rect.right + dx > SCREEN_WIDTH:
@@ -449,8 +475,9 @@ class Bullet(pygame.sprite.Sprite):
         
 
 #cria botoes
-play_button = button.Button(SCREEN_WIDTH // 2 - 130, SCREEN_HEIGTH // 2 - 150, play_img, 1 ) 
-quit_button = button.Button(SCREEN_WIDTH // 2 - 110, SCREEN_HEIGTH // 2 + 50, exit_img, 1 ) 
+play_button = button.Button(SCREEN_WIDTH // 2 - 130, SCREEN_HEIGHT  // 2 - 150, play_img, 1 ) 
+quit_button = button.Button(SCREEN_WIDTH // 2 - 110, SCREEN_HEIGHT  // 2 + 50, exit_img, 1 ) 
+restart_button = button.Button(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT  // 2 - 50, restart_img, 2 ) 
 
 
 #grupo de sprites
@@ -535,6 +562,21 @@ while run:
         player.update_action(0)
       screen_scroll = player.move(moving_left, moving_rigth)
       bg_scroll -= screen_scroll
+    else:
+      screen_scroll = 0
+      if restart_button.draw(screen):
+        bg_scroll = 0
+        world_data = reset_level()
+        #carrega o lvl atual
+        with open(f'level/level{level}_data.csv', newline='') as csvfile:
+          reader = csv.reader(csvfile, delimiter=',')
+          for x, row in enumerate(reader):
+            for y, tile in enumerate(row):
+                  world_data[x][y] = int(tile)
+
+        world = World()
+        player, health_bar = world.process_data(world_data)
+
 
 
 
