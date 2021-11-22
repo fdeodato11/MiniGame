@@ -2,8 +2,10 @@ import pygame
 import os
 import random
 import csv
+import button
 from pygame.locals import *
 from sys import exit
+
 
 pygame.init()
 
@@ -25,6 +27,8 @@ TILE_TYPES = 21
 screen_scroll = 0
 bg_scroll = 0
 level = 1
+start_game = False
+
 
 #ESCALAS
 WOOD_IDLE = 0.4
@@ -38,8 +42,6 @@ moving_left = False
 moving_rigth = False
 shoot = False
 
-#carrega imagens
-stage1_img = pygame.image.load('images/background/estage1.png').convert_alpha() 
 
 img_list = []
 for x in range(TILE_TYPES):
@@ -48,6 +50,10 @@ for x in range(TILE_TYPES):
   img_list.append(img)
 
 #carrega imagens
+play_img = pygame.image.load('images/menu/play button.png').convert_alpha()
+exit_img = pygame.image.load('images/menu/quit button.png').convert_alpha()
+
+stage1_img = pygame.image.load('images/background/estage1.png').convert_alpha() 
 #bala
 bullet_img = pygame.image.load('images/bullet/0.png').convert_alpha()
 
@@ -442,6 +448,10 @@ class Bullet(pygame.sprite.Sprite):
           self.kill()
         
 
+#cria botoes
+play_button = button.Button(SCREEN_WIDTH // 2 - 130, SCREEN_HEIGTH // 2 - 150, play_img, 1 ) 
+quit_button = button.Button(SCREEN_WIDTH // 2 - 110, SCREEN_HEIGTH // 2 + 50, exit_img, 1 ) 
+
 
 #grupo de sprites
 enemy_group = pygame.sprite.Group()
@@ -472,49 +482,59 @@ run = True
 while run:
 
   clock.tick(FPS)
+
+  if start_game == False:
+    #menu principal
+    screen.fill(BG)
+    play_button.draw(screen)
+    quit_button.draw(screen)
+    pass
+  else:
   
-  draw_bg()
 
-  world.draw()
 
-  health_bar.draw(player.health)
+    draw_bg()
 
-  draw_text('MUNICAO: ', font, WHITE, 10, 35)
-  for x in range (player.ammo):
-    screen.blit(bullet_hud, (120 + (x * 22), 35))
-  
-  player.update()
-  player.draw()
+    world.draw()
 
-  for enemy in enemy_group:
-    enemy.ai()
-    enemy.update()
-    enemy.draw()
+    health_bar.draw(player.health)
+
+    draw_text('MUNICAO: ', font, WHITE, 10, 35)
+    for x in range (player.ammo):
+      screen.blit(bullet_hud, (120 + (x * 22), 35))
     
+    player.update()
+    player.draw()
 
-#carrega grupo de sprites
-  bullet_group.update()
-  item_box_group.update()
-  decoration_group.update()
-  exit_group.update()
-  water_group.update()
-  bullet_group.draw(screen)
-  item_box_group.draw(screen)
-  decoration_group.draw(screen)
-  water_group.draw(screen)
-  exit_group.draw(screen)
-  
-  if player.alive:
-    if shoot:
-      player.shoot()
-    elif player.in_air:
-      player.update_action(2)
-    elif moving_rigth or moving_left:
-      player.update_action(1)
-    else:
-      player.update_action(0)
-    screen_scroll = player.move(moving_left, moving_rigth)
-    bg_scroll -= screen_scroll
+    for enemy in enemy_group:
+      enemy.ai()
+      enemy.update()
+      enemy.draw()
+      
+
+  #carrega grupo de sprites
+    bullet_group.update()
+    item_box_group.update()
+    decoration_group.update()
+    exit_group.update()
+    water_group.update()
+    bullet_group.draw(screen)
+    item_box_group.draw(screen)
+    decoration_group.draw(screen)
+    water_group.draw(screen)
+    exit_group.draw(screen)
+    
+    if player.alive:
+      if shoot:
+        player.shoot()
+      elif player.in_air:
+        player.update_action(2)
+      elif moving_rigth or moving_left:
+        player.update_action(1)
+      else:
+        player.update_action(0)
+      screen_scroll = player.move(moving_left, moving_rigth)
+      bg_scroll -= screen_scroll
 
 
 
