@@ -67,7 +67,10 @@ exit_img = pygame.image.load('images/menu/quit button.png').convert_alpha()
 restart_img = pygame.image.load('images/menu/restart.png').convert_alpha()
 
 
-stage1_img = pygame.image.load('images/background/estage1.png').convert_alpha() 
+stage1_img = pygame.image.load('images/background/fase1.png').convert_alpha()
+stage2_img = pygame.image.load('images/background/fase2.png').convert_alpha() 
+stage3_img = pygame.image.load('images/background/fase3.png').convert_alpha() 
+
 #bala
 bullet_img = pygame.image.load('images/bullet/0.png').convert_alpha()
 
@@ -101,9 +104,19 @@ def draw_text(text, font, text_col, x, y):
 
 def draw_bg():
   screen.fill(BG)
-  width = stage1_img.get_width()
-  for x in range(5):
-    screen.blit(stage1_img, ((x * width) - bg_scroll, 0))
+  if level == 1:
+    width = stage1_img.get_width()
+    for x in range(5):
+      screen.blit(stage1_img, ((x * width) - bg_scroll, 0))
+  elif level == 2:
+    width = stage2_img.get_width()
+    for x in range(5):
+      screen.blit(stage2_img, ((x * width) - bg_scroll, 0))
+  else:
+    width = stage3_img.get_width()
+    for x in range(5):
+      screen.blit(stage3_img, ((x * width) - bg_scroll, 0))
+        
   # pygame.draw.line(screen, RED, (0, 455), (SCREEN_WIDTH, 455))
 # SCREEN_WIDTH = 800
 # SCREEN_HEIGHT  = int(SCREEN_WIDTH * 0.8)
