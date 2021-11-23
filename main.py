@@ -1,4 +1,5 @@
 import pygame
+from pygame import mixer
 import os
 import random
 import csv
@@ -6,7 +7,7 @@ import button
 from pygame.locals import *
 from sys import exit
 
-
+mixer.init()
 pygame.init()
 
 SCREEN_WIDTH = 800
@@ -49,6 +50,15 @@ for x in range(TILE_TYPES):
   img = pygame.image.load(f'images/tile/{x}.png')
   img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE))
   img_list.append(img)
+
+#Carrega imagens e sons
+pygame.mixer.music.load('audio/Intro.mp3')
+pygame.mixer.music.set_volume(0.3)
+pygame.mixer.music.play(-1, 0.0, 5000)
+jump_fx = pygame.mixer.Sound('audio/jumps.mp3')
+jump_fx.set_volume(0.1)
+shoot_fx = pygame.mixer.Sound('audio/fire.mp3')
+shoot_fx.set_volume(0.1)
 
 #carrega imagens
 play_img = pygame.image.load('images/menu/play button.png').convert_alpha()
@@ -263,6 +273,7 @@ class Character(pygame.sprite.Sprite):
       bullet = Bullet(self.rect.centerx + (self.rect.size[0] * self.direction), self.rect.centery, self.direction)
       bullet_group.add(bullet)
       self.ammo -= 1
+      shoot_fx.play()
 
   def ai(self):
     if self.alive and player.alive:
@@ -392,8 +403,8 @@ class Water(pygame.sprite.Sprite):
     self.rect = self.image.get_rect()
     self.rect.midtop = ( x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
 
-    def update(self):
-      self.rect.x += screen_scroll
+  def update(self):
+    self.rect.x += screen_scroll
 
 
 class Exit(pygame.sprite.Sprite):
@@ -403,8 +414,8 @@ class Exit(pygame.sprite.Sprite):
     self.rect = self.image.get_rect()
     self.rect.midtop = ( x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
 
-    def update(self):
-      self.rect.x += screen_scroll
+  def update(self):
+    self.rect.x += screen_scroll
 
 
 class ItemBox(pygame.sprite.Sprite):
@@ -613,6 +624,7 @@ while run:
         shoot = True
       if event.key == pygame.K_w and player.alive:
         player.jump = True
+        jump_fx.play()
       if event.key == pygame.K_ESCAPE:
         run = False
 
