@@ -360,8 +360,9 @@ class World():
             water = Water(img, x * TILE_SIZE, y * TILE_SIZE)
             water_group.add(water)
           elif tile >= 11 and tile <= 14:
-            decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE)
-            decoration_group.add(decoration)
+            self.obstacle_list.append(tile_data)
+            # decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE)
+            # decoration_group.add(decoration)
           elif tile == 15:
             player = Character('wood' , x * TILE_SIZE, y * TILE_SIZE, 0.6, 5, 10)
             health_bar = health_bar = HealthBar(10, 10, player.health, player.health)
@@ -563,6 +564,9 @@ while run:
     if play_button.draw(screen):
       start_game = True
       start_intro = True
+      pygame.mixer.music.load('audio/Grasslands.mp3')
+      pygame.mixer.music.set_volume(0.3)
+      pygame.mixer.music.play(-1, 0.0, 5000)
 
     if quit_button.draw(screen):
           run = False
@@ -631,6 +635,9 @@ while run:
 
           world = World()
           player, health_bar = world.process_data(world_data)
+          pygame.mixer.music.load(f'audio/{level}.mp3')
+          pygame.mixer.music.set_volume(0.3)
+          pygame.mixer.music.play(-1, 0.0, 5000)
 
     else:
       screen_scroll = 0
