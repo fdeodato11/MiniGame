@@ -173,12 +173,12 @@ class Character(pygame.sprite.Sprite):
           temp_list.append(img)
         self.animation_list.append(temp_list)
 
-      if char_type == "guarda3":
+      if char_type == "guarda":
         temp_list = []
-        num_of_frames = len(os.listdir(f'images/{char_type}/{animation}'))
+        num_of_frames = len(os.listdir(f'images/{char_type}/{level}/{animation}'))
 
         for i in range(num_of_frames):
-          img = pygame.image.load(f'images/{char_type}/{animation}/{i}.png').convert_alpha()
+          img = pygame.image.load(f'images/{char_type}/{level}/{animation}/{i}.png').convert_alpha()
           img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height()* scale)))
           temp_list.append(img)
         self.animation_list.append(temp_list)
@@ -225,7 +225,7 @@ class Character(pygame.sprite.Sprite):
       if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
         dx = 0
 
-        if self.char_type == 'guarda3':
+        if self.char_type == 'guarda':
           self.direction *= -1
           self.move_counter = 0
 
@@ -367,7 +367,7 @@ class World():
             player = Character('wood' , x * TILE_SIZE, y * TILE_SIZE, 0.6, 5, 10)
             health_bar = health_bar = HealthBar(10, 10, player.health, player.health)
           elif tile == 16:
-            enemy =   Character('guarda3', x * TILE_SIZE, y * TILE_SIZE, 0.1, 2, 555)
+            enemy =   Character('guarda', x * TILE_SIZE, y * TILE_SIZE, 0.1, 2, 555)
             enemy_group.add(enemy)
           elif tile == 17:
             item_box = ItemBox('Ammo', x * TILE_SIZE, y * TILE_SIZE)
