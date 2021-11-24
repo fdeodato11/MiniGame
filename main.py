@@ -536,7 +536,7 @@ intro_fade = ScreenFade(1, BLACK, 4)
 death_fade = ScreenFade(2, PINK, 4)
 
 #cria botoes
-play_button = button.Button(SCREEN_WIDTH // 2 - 130, SCREEN_HEIGHT  // 2 - 150, play_img, 1 ) 
+play_button = button.Button(SCREEN_WIDTH // 2 - 106, SCREEN_HEIGHT  // 2 - 150, play_img, 1 ) 
 quit_button = button.Button(SCREEN_WIDTH // 2 - 110, SCREEN_HEIGHT  // 2 + 50, exit_img, 1 ) 
 restart_button = button.Button(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT  // 2 - 50, restart_img, 2 ) 
 
@@ -635,6 +635,9 @@ while run:
       bg_scroll -= screen_scroll
 
       if level_complete:
+        if level == 3:
+          start_game = False
+          os.startfile('Video.mp4')
         start_intro = True
         level += 1
         bg_scroll = 0
